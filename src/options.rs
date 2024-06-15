@@ -31,7 +31,7 @@ mod tests {
     use super::Options;
 
     #[test]
-    fn test_deserialize() {
+    fn test_json() {
         let raw = r#"
         {
             "requireGitignore": true,
