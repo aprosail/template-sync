@@ -65,7 +65,7 @@ mod tests {
     use super::{FileOrFolder, FileSyncMode, Options};
 
     #[test]
-    fn test_json() {
+    fn json() {
         let raw = r#"
         {
             "requireGitignore": true,
