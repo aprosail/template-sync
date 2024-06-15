@@ -7,16 +7,32 @@ use serde::{de, Deserialize};
 pub struct Options {
     /// Once enabled, if there's no `.gitignore` file
     /// in the given root folder, the program won't run.
-    ///
-    /// 1. This is designed to prevent accidental call a error folder,
-    ///    because common repos managed by Git
-    ///    usually contains a `.gitignore` file.
-    ///
-    /// 2. Even if running inside a Git repo,
-    ///    such option can prevent performance issue
-    ///    by avoiding unnecessary file scanning.
+    /// This is designed to prevent accidental call a error folder, because
+    /// common repos managed by Git usually contains a `.gitignore` file.
+    #[serde(default = "enable")]
     pub require_gitignore: bool,
+
+    /// If enabled, the program will use `.gitignore` file to ignore files.
+    /// You can also configure [`FileSyncMode::Enable`] to enable this feature
+    /// for files ignore by `.gitignore` manually.
+    #[serde(default = "enable")]
     pub use_gitignore: bool,
+
+    /// Options details for specified files and folders.
+    /// You can configure it in tree structure like this:
+    ///
+    /// ```json
+    /// {
+    ///     // other options...
+    ///     "folder1": {
+    ///         "file1": "enable",
+    ///         "file2": "ignore"
+    ///         // other files or folders...
+    ///     },
+    ///     "file3": "https://example.com/xxx"
+    ///     // other files or folders...
+    /// }
+    /// ```
     pub customize: HashMap<String, FileOrFolder>,
 }
 
@@ -34,6 +50,11 @@ pub enum FileSyncMode {
     Enable,
     Ignore,
     Auto,
+}
+
+/// Encapsulation of `true` when configuring serde default value.
+fn enable() -> bool {
+    true
 }
 
 impl<'de> Deserialize<'de> for FileSyncMode {
@@ -81,7 +102,6 @@ mod tests {
         let raw = r#"
         {
             "requireGitignore": true,
-            "useGitignore": true,
             "customize": {
                 "file1": "enable",
                 "file2": "ignore",
@@ -96,8 +116,8 @@ mod tests {
         let options: Options = serde_json::from_str(raw).unwrap();
 
         // Normal options.
-        assert!(options.require_gitignore);
-        assert!(options.use_gitignore);
+        assert!(options.require_gitignore); // Configured value.
+        assert!(options.use_gitignore); // Default value.
 
         // Customize direct file.
         assert_eq!(
