@@ -62,6 +62,8 @@ impl<'de> Deserialize<'de> for FileSyncMode {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
+
     use super::{FileOrFolder, FileSyncMode, Options};
 
     #[test]
@@ -73,27 +75,51 @@ mod tests {
             "customize": {
                 "file1": "enable",
                 "file2": "ignore",
-                "file3": "invalid file config"
+                "file3": "invalid file config",
+                "folder1": {
+                    "file4": "auto",
+                    "file5": "https://example.com/file"
+                }
             }
         }
         "#;
         let options: Options = serde_json::from_str(raw).unwrap();
+
+        // Normal options.
         assert!(options.require_gitignore);
         assert!(options.use_gitignore);
 
+        // Customize direct file.
         assert_eq!(
             options.customize.get("file1"),
-            Some(&FileOrFolder::File(FileSyncMode::Enable)),
+            Some(&FileOrFolder::File(FileSyncMode::Enable))
         );
         assert_eq!(
             options.customize.get("file2"),
-            Some(&FileOrFolder::File(FileSyncMode::Ignore)),
+            Some(&FileOrFolder::File(FileSyncMode::Ignore))
         );
         assert_eq!(
             options.customize.get("file3"),
             Some(&FileOrFolder::File(FileSyncMode::SyncWholeFile(
                 String::from("invalid file config")
-            ))),
+            )))
+        );
+
+        // Custom folder.
+        assert_eq!(
+            options.customize.get("folder1"),
+            Some(&FileOrFolder::Folder(HashMap::from([
+                (
+                    String::from("file4"),
+                    FileOrFolder::File(FileSyncMode::Auto)
+                ),
+                (
+                    String::from("file5"),
+                    FileOrFolder::File(FileSyncMode::SyncWholeFile(
+                        String::from("https://example.com/file")
+                    ))
+                )
+            ])))
         );
     }
 }
