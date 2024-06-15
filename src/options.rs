@@ -5,6 +5,16 @@ use serde::{de, Deserialize};
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Options {
+    /// Once enabled, if there's no `.gitignore` file
+    /// in the given root folder, the program won't run.
+    ///
+    /// 1. This is designed to prevent accidental call a error folder,
+    ///    because common repos managed by Git
+    ///    usually contains a `.gitignore` file.
+    ///
+    /// 2. Even if running inside a Git repo,
+    ///    such option can prevent performance issue
+    ///    by avoiding unnecessary file scanning.
     pub require_gitignore: bool,
     pub use_gitignore: bool,
     pub customize: HashMap<String, FileOrFolder>,
